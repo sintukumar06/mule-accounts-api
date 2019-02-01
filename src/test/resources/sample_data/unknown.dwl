@@ -1,0 +1,3 @@
+[
+	{\n  \"PHONE\": \"1-(318)596-8473\",\n  \"LASTMODIFIEDDATE\": \"2016-05-20T13:54:28\",\n  \"BILLINGSTREET\": \"Pleasure 4598\",\n  \"SHIPPINGSTATE\": \"Mississippi\",\n  \"SHIPPINGSTREET\": \"Autumn Leaf 3\",\n  \"ID\": \"074a8d46-1db3-11e6-8d57-54ee7534a10b\",\n  \"SHIPPINGCITY\": \"Jackson\",\n  \"LASTMODIFIEDBYID\": \"root@localhost\",\n  \"BILLINGSTATE\": \"Louisiana\",\n  \"NATIVEID\": \"074a8d46\",\n  \"SHIPPINGCOUNTRY\": \"United States\",\n  \"BILLINGCOUNTRY\": \"United States\",\n  \"BILLINGCITY\": \"Shreveport\",\n  \"EMAIL\": \"jason.bourne@email.com\",\n  \"SHIPPINGPOSTALCODE\": \"39204\",\n  \"BILLINGPOSTALCODE\": \"71105\",\n  \"NAME\": \"Jason Bourne\"\n}
+]

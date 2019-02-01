@@ -4,17 +4,34 @@
 	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
     <db:config name="Database_Config" doc:name="Database Config" doc:id="cc0869ea-2a47-418a-9b49-70f406146424" >
 		<db:generic-connection url="jdbc:h2:tcp://localhost/~/test" driverClassName="org.h2.Driver" user="sa" />
 	</db:config>
 	<flow name="get:\accounts:mule-accounts-crud-h2-api-config">
-        <db:select doc:name="Select from Account" doc:id="214eec0c-ac5b-498e-b320-86146df992bb" config-ref="Database_Config">
-			<db:sql >SELECT
+        <ee:transform doc:name="Transform Message" doc:id="063a134e-ae66-4993-a79a-386f2e97691c" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="whereClause" ><![CDATA[%dw 2.0
+output application/java
+---
+using (params = attributes.queryParams) {
+	(orderBy: 'ORDER BY ' ++ params.orderBy ++ if (params.order == "asc") ' ASC' else ' DESC')
+}
+pluck $
+joinBy ' '
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:select doc:name="Select from Account" doc:id="214eec0c-ac5b-498e-b320-86146df992bb" config-ref="Database_Config">
+			<db:sql >#[&quot;SELECT
 	Id, NativeId, Name, Phone, Email, BillingStreet, BillingCity, BillingPostalCode, BillingState, 
 	BillingCountry, ShippingStreet, ShippingCity, ShippingPostalCode, ShippingState, ShippingCountry, 
 	LastModifiedDate, LastModifiedById 
-FROM Account</db:sql>
+FROM Account
+WHERE id LIKE '%' &quot; ++ vars.whereClause]</db:sql>
 		</db:select>
 		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="8fcc803e-3ac7-4ba3-8869-e74f3ca7a5ee">
             <ee:message>
@@ -46,40 +63,47 @@ payload map {
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
-    </flow>
+    
+</flow>
 	<flow name="get:\accounts\(id):mule-accounts-crud-h2-api-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" doc:id="e5a0487e-324f-4ce0-8326-c5b29dca1de6">
-            <ee:variables>
-                <ee:set-variable variableName="id"><![CDATA[attributes.uriParams.id]]></ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+        <db:select doc:name="Select from Account" doc:id="f26509c5-8d04-4a0e-9724-d67b5d56ff02" config-ref="Database_Config">
+			<db:sql>SELECT
+	Id, NativeId, Name, Phone, Email, BillingStreet, BillingCity, BillingPostalCode, BillingState, 
+	BillingCountry, ShippingStreet, ShippingCity, ShippingPostalCode, ShippingState, ShippingCountry, 
+	LastModifiedDate, LastModifiedById
+FROM Account
+WHERE Id = :id</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'id': attributes.uriParams.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="95a27261-edd7-490e-9d7e-0bc34b8adbe8">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
-  id: "074a8d46-1db3-11e6-8d57-54ee7534a10b",
-  nativeId: "1a2b3c4d",
-  name: "Jason Bourne",
-  phone: "1-(318)596-8473",
-  email: "test@example.com",
-  billingAddress: {
-    street: "Pleasure 4598",
-    city: "Shreveport",
-    state: "Louisiana",
-    postalCode: "71105",
-    country: "United States"
-  },
-  shippingAddress: {
-    street: "Autumn Leaf 3",
-    city: "Jackson",
-    state: "Mississippi",
-    postalCode: "39204",
-    country: "United States"
-  },
-  lastModifiedDate: "2016-03-24T15:00:00.000Z",
-  lastModifiedById: "123456"
+	id                  : payload[0].Id,
+	nativeId            : payload[0].NativeId,
+	name                : payload[0].Name,
+	email               : payload[0].Email,
+	phone               : payload[0].Phone,
+	billingAddress: {
+		street       	: payload[0].BillingStreet,
+		city         	: payload[0].BillingCity,
+		state        	: payload[0].BillingState,
+		postalCode   	: payload[0].BillingPostalCode,
+		country      	: payload[0].BillingCountry
+	},
+	shippingAddress: {
+		street      	: payload[0].ShippingStreet,
+		city        	: payload[0].ShippingCity,
+		state       	: payload[0].ShippingState,
+		postalCode  	: payload[0].ShippingPostalCode,
+		country     	: payload[0].ShippingCountry
+	},
+	lastModifiedDate    : payload[0].LastModifiedDate,
+	LastModifiedById	: payload[0].LastModifiedById
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
